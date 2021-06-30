@@ -6,7 +6,6 @@ use std::{thread, time};
 use std::fmt;
 
 #[derive(Clone, Copy)]
-#[allow(dead_code)]
 enum Cell {
     Dead,
     Alive
@@ -21,7 +20,6 @@ impl fmt::Display for Cell {
     }
 }
 
-#[allow(dead_code)]
 struct Board {
     rows: usize,
     cols: usize,
@@ -40,7 +38,6 @@ impl fmt::Display for Board {
     }
 }
 
-#[allow(dead_code)]
 fn snap(i: isize, limit: usize) -> usize {
     if i == -1 {
         limit - 1
@@ -51,7 +48,6 @@ fn snap(i: isize, limit: usize) -> usize {
     }
 }
 
-#[allow(dead_code)]
 impl Board {
     fn new(rows: usize, cols: usize) -> Self {
         Self {
