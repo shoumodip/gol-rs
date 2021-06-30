@@ -1,7 +1,12 @@
-use std::fmt;
+use std::fs;
+use std::process;
+use std::env;
 use std::{thread, time};
 
+use std::fmt;
+
 #[derive(Clone, Copy)]
+#[allow(dead_code)]
 enum Cell {
     Dead,
     Alive
@@ -16,6 +21,7 @@ impl fmt::Display for Cell {
     }
 }
 
+#[allow(dead_code)]
 struct Board {
     rows: usize,
     cols: usize,
@@ -34,6 +40,7 @@ impl fmt::Display for Board {
     }
 }
 
+#[allow(dead_code)]
 fn snap(i: isize, limit: usize) -> usize {
     if i == -1 {
         limit - 1
@@ -44,6 +51,7 @@ fn snap(i: isize, limit: usize) -> usize {
     }
 }
 
+#[allow(dead_code)]
 impl Board {
     fn new(rows: usize, cols: usize) -> Self {
         Self {
@@ -103,54 +111,64 @@ impl Board {
             self.cells[row][col] = Cell::Alive;
         }
     }
+
+    fn from_image(path: &str) -> Self {
+        let image = match fs::read_to_string(path) {
+            Ok(source) => source,
+            Err(e) => {
+                eprintln!("Error: failed to read image `{}`: {}", path, e);
+                process::exit(1);
+            }
+        };
+
+        let lines: Vec<String> = image
+            .lines()
+            .map(|l| l.to_string())
+            .collect();
+
+        let dimensions: Vec<usize> = lines[0]
+            .split('x')
+            .map(|l| l.to_string().parse().expect("invalid dimensions"))
+            .collect();
+
+        let rows = dimensions[0];
+        let cols = dimensions[1];
+
+        let mut board = Board::new(rows, cols);
+        let mut alive: Vec<(usize, usize)> = vec![];
+
+        for (row, line) in lines.iter().enumerate() {
+            if row == 0 {continue;}
+
+            for (col, cell) in line.chars().enumerate() {
+                match cell {
+                    '#' => alive.push((col, row - 1)),
+                    '.' => {},
+                    _   => {
+                        eprintln!("{}:{}:{} Invalid character '{}'", path, row + 1, col + 1, cell);
+                        process::exit(1);
+                    }
+                }
+            }
+        }
+
+        board.make_alive(alive);
+        board
+    }
 }
 
 fn main() {
-    let mut board = Board::new(30, 60);
-    board.make_alive(vec![
-        (1, 5),
-        (1, 6),
-        (2, 5),
-        (2, 6),
+    let arguments: Vec<String> = env::args().collect();
 
-        (12, 4),
-        (13, 3),
-        (14, 3),
-        (16, 4),
-        (17, 5),
-        (17, 6),
-        (17, 7),
-        (18, 6),
-        (16, 8),
-        (14, 9),
-        (13, 9),
-        (12, 8),
-        (11, 7),
-        (11, 6),
-        (11, 5),
-        (15, 6),
+    if arguments.len() != 2 {
+        eprintln!("Usage: gol-rs [IMAGE]");
+        process::exit(1);
+    }
 
-        (21, 3),
-        (21, 4),
-        (21, 5),
-        (22, 3),
-        (22, 4),
-        (22, 5),
-        (23, 2),
-        (23, 6),
+    let path = &arguments[1];
+    let mut board = Board::from_image(&path);
 
-        (25, 1),
-        (25, 2),
-        (25, 6),
-        (25, 7),
-
-        (35, 3),
-        (35, 4),
-        (36, 3),
-        (36, 4),
-    ]);
-
-    print!("[?25l");      // ANSI sequence for hiding the cursor
+    print!("[?25l");      // Hide the cursor
     loop {
         print!("{}", board);
         print!("[{}A[{}D", board.rows, board.cols); // Reset the cursor position
