@@ -122,23 +122,16 @@ impl Board {
             .map(|l| l.to_string())
             .collect();
 
-        let dimensions: Vec<usize> = lines[0]
-            .split('x')
-            .map(|l| l.to_string().parse().expect("invalid dimensions"))
-            .collect();
-
-        let rows = dimensions[0];
-        let cols = dimensions[1];
+        let rows = lines.len();
+        let cols = lines[0].len();
 
         let mut board = Board::new(rows, cols);
         let mut alive: Vec<(usize, usize)> = vec![];
 
         for (row, line) in lines.iter().enumerate() {
-            if row == 0 {continue;}
-
             for (col, cell) in line.chars().enumerate() {
                 match cell {
-                    '#' => alive.push((col, row - 1)),
+                    '#' => alive.push((col, row)),
                     '.' => {},
                     _   => {
                         eprintln!("{}:{}:{} Invalid character '{}'", path, row + 1, col + 1, cell);
