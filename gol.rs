@@ -157,11 +157,8 @@ fn main() {
     let path = &arguments[1];
     let mut board = Board::from_image(&path);
 
-    print!("[?25l");      // Hide the cursor
     loop {
-        print!("{}", board);
-        print!("[{}A[{}D", board.rows, board.cols); // Reset the cursor position
-
+        print!("{}\x1b[{}A\x1b[{}D", board, board.rows, board.cols); // Reset the cursor position
         board.iter();
         thread::sleep(time::Duration::from_millis(100));
     }
